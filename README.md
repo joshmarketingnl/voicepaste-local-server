@@ -50,14 +50,26 @@ Klaar — geen API-key nodig. Dicteer zoals altijd; alles blijft op je eigen com
 
 ```bash
 # macOS                                   # Windows
-./install.sh --model turbo               .\install.ps1 -Model turbo     # best quality (574 MB)
+./install.sh --model small               .\install.ps1 -Model small     # lighter model
 ./install.sh --port 9000                 .\install.ps1 -Port 9000
 ./install.sh --uninstall                 .\install.ps1 -Uninstall
+                                          .\install.ps1 -Gpu off         # force CPU build
 ```
 
-- **small** (default): 190 MB download, ~600 MB RAM while transcribing. Fast on any machine.
-- **turbo** (large-v3-turbo): 574 MB download, ~1.2 GB RAM. Near cloud-level accuracy —
-  recommended on Apple Silicon (Metal makes it fast) and fast desktop CPUs.
+### Defaults & speed
+
+| Machine | Engine | Default model | Speed per sentence* |
+|---|---|---|---|
+| Windows + NVIDIA GPU (auto-detected) | **CUDA** | **turbo** (best quality) | **~0.4 s** |
+| Windows, CPU only | AVX2 CPU | small | ~4 s |
+| Apple Silicon Mac | **Metal** | **turbo** (best quality) | fast |
+| Intel Mac | CPU | small | moderate |
+
+\* measured on an RTX 3060 Ti with a 7-second recording (warm server).
+
+- **small**: 190 MB download, ~600 MB RAM. Light and quick on CPU.
+- **turbo** (large-v3-turbo): 574 MB download, ~1.2 GB RAM (CPU) / ~1 GB VRAM (GPU).
+  Near cloud-level accuracy.
 
 Both models support **99 languages** with automatic language detection and code-switching.
 

@@ -22,7 +22,7 @@ AGENT_LABEL="com.voicepaste.local-server"
 AGENT_PLIST="$HOME/Library/LaunchAgents/$AGENT_LABEL.plist"
 LOG_FILE="$HOME/Library/Logs/voicepaste-local-server.log"
 
-MODEL="small"
+MODEL=""
 PORT="8765"
 AUTOSTART="no"
 UNINSTALL="no"
@@ -53,6 +53,13 @@ if [[ "$UNINSTALL" == "yes" ]]; then
 fi
 
 # ----- Model selection ------------------------------------------------------
+# Default: best-quality turbo on Apple Silicon (Metal makes it fast),
+# lightweight small on Intel Macs.
+if [[ -z "$MODEL" ]]; then
+  if [[ "$(uname -m)" == "arm64" ]]; then MODEL="turbo"; else MODEL="small"; fi
+  say "Geen --model opgegeven — standaard voor deze Mac: $MODEL"
+fi
+
 case "$MODEL" in
   small) MODEL_FILE="ggml-small-q5_1.bin"
          MODEL_URL="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin" ;;
