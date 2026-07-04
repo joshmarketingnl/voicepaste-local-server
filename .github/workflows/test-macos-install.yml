@@ -1,0 +1,43 @@
+name: test-macos-install
+
+# End-to-end test of the macOS installer on a real Apple Silicon runner:
+# downloads the released whisper-server binary, the default model, installs
+# ffmpeg, starts the server and transcribes a real speech sample through the
+# OpenAI-compatible endpoint — exactly what the VoicePaste app does.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'macos/install.sh'
+      - '.github/workflows/test-macos-install.yml'
+
+jobs:
+  e2e-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run installer (default model for this arch)
+        run: bash macos/install.sh
+
+      - name: Generate a speech sample (macOS TTS -> webm/opus, like the app records)
+        run: |
+          say -o /tmp/test.aiff "This is a local transcription test on the mac"
+          ffmpeg -y -loglevel error -i /tmp/test.aiff -c:a libopus -b:a 32k /tmp/test.webm
+          ls -la /tmp/test.webm
+
+      - name: Transcribe via the OpenAI-compatible endpoint
+        run: |
+          out=$(curl -s -w '\nHTTP %{http_code}' -X POST http://127.0.0.1:8765/v1/audio/transcriptions \
+            -H "Authorization: Bearer voicepaste-local" \
+            -F "file=@/tmp/test.webm;type=audio/webm" \
+            -F "model=gpt-4o-mini-transcribe")
+          echo "$out"
+          echo "$out" | grep -q 'HTTP 200' || { echo 'FAIL: non-200 response'; exit 1; }
+          echo "$out" | grep -qi 'transcription' || { echo 'FAIL: expected words missing from transcript'; exit 1; }
+          echo 'PASS: end-to-end transcription works on macOS'
+
+      - name: Show server log on failure
+        if: failure()
+        run: cat "$HOME/Library/Logs/voicepaste-local-server.log" || true
