@@ -131,6 +131,10 @@ fi
 cat > "$INSTALL_DIR/start-server.sh" <<EOF
 #!/usr/bin/env bash
 export PATH="/opt/homebrew/bin:/usr/local/bin:\$PATH"
+# whisper-server schrijft tijdelijke conversiebestanden naar de werkmap
+# (./whisper-server-*.wav). launchd start agents met werkmap "/" (niet
+# schrijfbaar) — zonder deze cd faalt elke transcriptie via autostart.
+cd "$INSTALL_DIR"
 exec "$INSTALL_DIR/bin/whisper-server" \\
   -m "$INSTALL_DIR/models/$MODEL_FILE" \\
   -l auto \\
@@ -160,6 +164,7 @@ if [[ "$AUTOSTART" == "yes" ]]; then
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
+  <key>WorkingDirectory</key><string>$INSTALL_DIR</string>
   <key>StandardOutPath</key><string>$LOG_FILE</string>
   <key>StandardErrorPath</key><string>$LOG_FILE</string>
 </dict>

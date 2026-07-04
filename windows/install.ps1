@@ -134,6 +134,9 @@ $vbsScript = @"
 ' Start de VoicePaste lokale transcriptie-server zonder zichtbaar venster.
 Set shell = CreateObject("WScript.Shell")
 scriptDir = Left(WScript.ScriptFullName, InStrRev(WScript.ScriptFullName, "\"))
+' Werkmap expliciet zetten: whisper-server schrijft temp-conversiebestanden
+' naar de werkmap; bij autostart kan die onbeschrijfbaar zijn.
+shell.CurrentDirectory = scriptDir
 cmd = """" & scriptDir & "$BinSub\whisper-server.exe""" & _
   " -m """ & scriptDir & "models\$ModelFile""" & _
   " -l auto -t 8 --host 127.0.0.1 --port $Port --convert" & _
